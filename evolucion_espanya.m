@@ -5,7 +5,7 @@ t2 = datetime(2020,05,30,'Format','MMM-d');
 t=t1:5:t2;
 X=1:numel(Yinfected);
 dinicial=31; % Día inicial
-numdias=15; %Número de dias de evolucion
+numdias=16; %Número de dias de evolucion
 fechas=dateshift(t1,'end','days',dinicial):dateshift(t1,'end','days',dinicial+numdias);
 colores=jet(numdias);
 
