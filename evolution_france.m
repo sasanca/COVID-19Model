@@ -1,21 +1,21 @@
-%% April 4. Paper submission
+%% May 19
 
 clc; clear all; close all;
 load('france.mat')
-fecha_final='Apr 04';
+fecha_final='May 19';
 dfinal=find(ismember(dates,fecha_final));
-fecha_inicial='Mar 22';
+fecha_inicial='Apr 02';
 dinicial=find(ismember(dates,fecha_inicial));
 Y=Yinfected(1:dfinal);
 t1 = datetime(2020,02,15,'Format','MMM-d');
-t2 = datetime(2020,05,30,'Format','MMM-d');
+t2 = datetime(2020,06,30,'Format','MMM-d');
 t=t1:5:t2;
 X=1:numel(Y);
 
 numdias=dfinal-dinicial+1; %Número de dias de evolution
 fechas=dates(dinicial:dfinal);
 colores=jet(numdias);
-
+diastotales= 120;
 
 %% Fit: 'france'.
 [xData, yData] = prepareCurveData( X, Y );
@@ -25,7 +25,8 @@ ft = fittype( 'K*P*exp(r*x)/(K+P*(exp(r*x)-1))', 'independent', 'x', 'dependent'
 opts = fitoptions( 'Method', 'NonlinearLeastSquares' );
 opts.Display = 'Off';
 opts.Lower = [1 1 0];
-opts.StartPoint = [100000 90 0.2];
+%opts.StartPoint = [150000 100 0.05];
+opts.StartPoint = [100000 100 0.1];
 
 % Fit model to data.
 for i=dinicial:numel(Y);
@@ -37,13 +38,15 @@ model_france=model_france(dinicial:end);
 
 figure(1); 
 hold on
-axis([1 76 0 2.5e5])
-plot(model_france{end}(1:76),'.-r','LineWidth',2)
+axis([1 diastotales 0 2.5e5])
 bar(X,Y);
-xticks(1:5:76)
+plot(model_france{end}(1:diastotales),'.-r','LineWidth',2)
+bounds = predint(model_france{end},(1:diastotales),0.95,'observation','on');
+plot(1:diastotales,bounds,'m--')
+xticks(1:5:diastotales)
 xtickangle(90)
 xticklabels(cellstr(t))
-legend({ 'Model','Data'},'Interpreter','latex','Location','NorthWest')
+legend({'Data', 'Model','Bounds (95\% Conf.)'},'Interpreter','latex','Location','NorthWest')
 %title('Total Coronavirus cases in france')
 xlabel('Date')
 ylabel('Confirmed cases')
@@ -52,11 +55,11 @@ box on
 
 figure(2); 
 hold on
-axis([1 76 0 17.5e3])
+axis([1 diastotales 0 17.5e3])
 
-plot(diff(model_france{end}(1:76)),'.-r','LineWidth',2)
+plot(diff(model_france{end}(-1:diastotales)),'.-r','LineWidth',2)
 bar([1 X(2:end)],[0 diff(Y)]);
-xticks(1:5:76)
+xticks(1:5:diastotales)
 xtickangle(90)
 xticklabels(cellstr(t))
 legend({ 'Model','Data'},'Interpreter','latex')
@@ -68,17 +71,17 @@ box on
 hold off
 
 figure(3); %evolution del model
-axis([1 76 0 2.5e5])
+axis([1 diastotales 0 3e5])
 hold on
 for i=1:numdias
 objeto=plot(model_france{i});
   set(objeto,'color',colores(i,:),'LineWidth',1.5);
 end
 
-xticks(1:5:76)
+xticks(1:5:diastotales)
 xtickangle(90)
 xticklabels(cellstr(t))
-legend(cellstr(fechas),'Interpreter','latex','Location','NorthWest','NumColumns',2)
+legend(cellstr(fechas),'Interpreter','latex','Location','NorthEastOutside','NumColumns',2)
 %title('Total Coronavirus cases in france')
 xlabel('Date')
 ylabel('Confirmed cases')
@@ -89,25 +92,23 @@ figure(4);  % Evolución del peak
 %title('Daily Coronavirus cases in france')
 xlabel('Date')
 ylabel('Confirmed cases')
-axis([1 76 0 11e3])
+axis([1 diastotales 0 11e3])
 hold on
 for i=1:numdias
-plot(diff(model_france{i}(1:76)),'color',colores(i,:),'LineWidth',1.5);
+plot(diff(model_france{i}(1:diastotales)),'color',colores(i,:),'LineWidth',1.5);
 end
 
-xticks(1:5:76)
+xticks(1:5:diastotales)
 xtickangle(90)
 xticklabels(cellstr(t))
-legend(cellstr(fechas),'Interpreter','latex','Location','NorthWest','NumColumns',1)
+legend(cellstr(fechas),'Interpreter','latex','Location','NorthEastOutside','NumColumns',2)
 grid off
 box on
 
 
-
-
 clear opts xData yData ft fechas colores numdias i objeto t t1 t2 X 
 
-clear Y fecha_inicial fecha_final dinicial dfinal
+clear Y fecha_inicial fecha_final dinicial dfinal diastotales
 
 save('france.mat')
 
